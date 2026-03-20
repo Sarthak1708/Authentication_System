@@ -1,0 +1,4 @@
+flask>=2.3.0
+PyJWT>=2.6.0
+Werkzeug>=2.3.0
+gunicorn

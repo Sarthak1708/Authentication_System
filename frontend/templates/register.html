@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register — SecureAuth</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="page-wrapper">
+    <div class="card">
+      <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <span class="brand-name">SecureAuth</span>
+      </div>
+      <h1 class="title">Create account</h1>
+      <p class="subtitle">Join in seconds. Your password is hashed with bcrypt.</p>
+      <div class="alert" id="alert"></div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="name" placeholder="Sarthak Patel" autocomplete="name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Min. 6 characters" autocomplete="new-password"/>
+          <span class="toggle-pw" id="togglePw">👁️</span>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      </div>
+      <button class="btn" id="registerBtn">
+        <span class="btn-text">Create Account →</span>
+        <div class="spinner"></div>
+      </button>
+      <div class="auth-link">Already have an account? <a href="/login">Sign in</a></div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script>
+    if (isLoggedIn()) window.location.href = "/profile";
+
+    document.getElementById("togglePw").addEventListener("click", () => {
+      const pw = document.getElementById("password");
+      pw.type = pw.type === "password" ? "text" : "password";
+      document.getElementById("togglePw").textContent = pw.type === "password" ? "👁️" : "🙈";
+    });
+
+    document.getElementById("password").addEventListener("input", e => {
+      const val = e.target.value;
+      const fill = document.getElementById("strengthFill");
+      let score = 0;
+      if (val.length >= 6)  score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      const colors = ["#f75f5f","#f7a05f","#f7d05f","#22d47a"];
+      const widths  = ["25%","50%","75%","100%"];
+      fill.style.width      = val.length ? (widths[score-1] || "10%") : "0";
+      fill.style.background = val.length ? (colors[score-1] || "#f75f5f") : "transparent";
+    });
+
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      hideAlert();
+      const name     = document.getElementById("name").value.trim();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!name)             return showAlert("Please enter your name");
+      if (!email)            return showAlert("Please enter your email");
+      if (!password)         return showAlert("Please enter a password");
+      if (password.length<6) return showAlert("Password must be at least 6 characters");
+
+      const btn = document.getElementById("registerBtn");
+      setLoading(btn, true);
+      const { ok, data } = await apiFetch("/register", {
+        method: "POST", body: JSON.stringify({ name, email, password })
+      });
+      setLoading(btn, false);
+
+      if (ok) {
+        saveToken(data.token);
+        showAlert("Account created! Redirecting…", "success");
+        setTimeout(() => window.location.href = "/profile", 1000);
+      } else {
+        showAlert(data.error || "Something went wrong");
+        document.getElementById("email").classList.add("error");
+      }
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("registerBtn").click();
+    });
+  </script>
+</body>
+</html>

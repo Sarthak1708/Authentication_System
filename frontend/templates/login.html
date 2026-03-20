@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — SecureAuth</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="page-wrapper">
+    <div class="card">
+      <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <span class="brand-name">SecureAuth</span>
+      </div>
+      <h1 class="title">Welcome back</h1>
+      <p class="subtitle">Sign in to access your protected profile.</p>
+      <div class="alert" id="alert"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Your password" autocomplete="current-password"/>
+          <span class="toggle-pw" id="togglePw">👁️</span>
+        </div>
+      </div>
+      <button class="btn" id="loginBtn">
+        <span class="btn-text">Sign In →</span>
+        <div class="spinner"></div>
+      </button>
+      <div class="auth-link">Don't have an account? <a href="/register">Create one</a></div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script>
+    if (isLoggedIn()) window.location.href = "/profile";
+
+    document.getElementById("togglePw").addEventListener("click", () => {
+      const pw = document.getElementById("password");
+      pw.type = pw.type === "password" ? "text" : "password";
+      document.getElementById("togglePw").textContent = pw.type === "password" ? "👁️" : "🙈";
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      hideAlert();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email)    return showAlert("Please enter your email");
+      if (!password) return showAlert("Please enter your password");
+
+      const btn = document.getElementById("loginBtn");
+      setLoading(btn, true);
+      const { ok, data } = await apiFetch("/login", {
+        method: "POST", body: JSON.stringify({ email, password })
+      });
+      setLoading(btn, false);
+
+      if (ok) {
+        saveToken(data.token);
+        showAlert("Login successful! Redirecting…", "success");
+        setTimeout(() => window.location.href = "/profile", 900);
+      } else {
+        showAlert(data.error || "Invalid credentials");
+        document.getElementById("email").classList.add("error");
+        document.getElementById("password").classList.add("error");
+      }
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("loginBtn").click();
+    });
+  </script>
+</body>
+</html>

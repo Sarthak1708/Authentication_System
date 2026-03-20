@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile — SecureAuth</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="page-wrapper">
+    <div class="card profile-card">
+      <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <span class="brand-name">SecureAuth</span>
+      </div>
+
+      <div id="loadingState" style="text-align:center;padding:2rem 0;color:var(--text2);">
+        <div style="width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 1rem;"></div>
+        Verifying JWT token…
+      </div>
+
+      <div id="profileContent" style="display:none;">
+        <div class="avatar" id="avatarEl"></div>
+        <div class="user-name" id="userName"></div>
+        <div class="user-email" id="userEmail"></div>
+        <div class="badge"><span class="badge-dot"></span>Authenticated via JWT</div>
+        <div class="info-grid">
+          <div class="info-box">
+            <div class="info-label">User ID</div>
+            <div class="info-value" id="userId"></div>
+          </div>
+          <div class="info-box">
+            <div class="info-label">Token Expires</div>
+            <div class="info-value" id="tokenExp"></div>
+          </div>
+          <div class="info-box" style="grid-column:1/-1;">
+            <div class="info-label">Member Since</div>
+            <div class="info-value" id="createdAt"></div>
+          </div>
+        </div>
+        <div class="token-box">
+          <div class="info-label">🔑 Your JWT Token (stored in localStorage)</div>
+          <div class="token-preview" id="tokenPreview"></div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">🚪 Sign Out</button>
+      </div>
+
+      <div id="errorState" style="display:none;text-align:center;padding:1rem 0;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🚫</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;">Access Denied</div>
+        <div style="color:var(--text2);font-size:0.9rem;margin-bottom:1.5rem;">This is a protected route. You need a valid JWT token to access it.</div>
+        <a href="/login" style="color:var(--accent);text-decoration:none;font-weight:500;">→ Sign in to continue</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script>
+    async function loadProfile() {
+      if (!isLoggedIn()) {
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("errorState").style.display = "block";
+        return;
+      }
+      const { ok, data } = await apiFetch("/profile");
+      document.getElementById("loadingState").style.display = "none";
+
+      if (ok) {
+        const u = data.user;
+        document.getElementById("avatarEl").textContent  = u.name.charAt(0).toUpperCase();
+        document.getElementById("userName").textContent   = u.name;
+        document.getElementById("userEmail").textContent  = u.email;
+        document.getElementById("userId").textContent     = `#${u.id}`;
+        document.getElementById("tokenExp").textContent   = u.token_expires_in;
+        document.getElementById("createdAt").textContent  = new Date(u.created_at).toLocaleString();
+        const token = getToken();
+        const parts = token.split(".");
+        document.getElementById("tokenPreview").textContent =
+          `${parts[0]}.${parts[1].substring(0,12)}…[signature hidden]`;
+        document.getElementById("profileContent").style.display = "block";
+      } else {
+        clearToken();
+        document.getElementById("errorState").style.display = "block";
+      }
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await apiFetch("/logout", { method: "POST" });
+      clearToken();
+      window.location.href = "/";
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

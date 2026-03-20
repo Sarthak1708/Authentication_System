@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureAuth</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+
+  <div class="page-wrapper">
+    <div class="card landing-card">
+      <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <span class="brand-name">SecureAuth</span>
+      </div>
+
+      <h1>Secure Authentication System</h1>
+      <p class="subtitle">JWT-based login system with protected routes</p>
+
+      <div class="feature-list">
+        <div class="feature-item">✅ JWT Authentication</div>
+        <div class="feature-item">🔐 Secure Password Hashing</div>
+        <div class="feature-item">⚡ Fast API + Clean UI</div>
+      </div>
+
+      <div class="landing-buttons">
+        <a href="/login" class="btn-primary-link">Login</a>
+        <a href="/register" class="btn-outline">Register</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
