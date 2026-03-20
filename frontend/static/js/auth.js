@@ -5,7 +5,7 @@ function getToken()       { return localStorage.getItem(TOKEN_KEY); }
 function clearToken()     { localStorage.removeItem(TOKEN_KEY); }
 function isLoggedIn()     { return !!getToken(); }
 
-const API = "http://localhost:5000/api";
+const API = window.location.origin + "/api";
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
